@@ -17,8 +17,12 @@ extern "C" {
 void ros_init(void);
 void ros_run(void);
 
+void can_init(void);
+
+
 void uart3TxCallback(UART_HandleTypeDef *huart);
 void uart3RxCallbcak(UART_HandleTypeDef *huart);
+void canRxCallback(CAN_HandleTypeDef *huart);
 void timer10ms(void);
 void timer15us(void);
 void timer1s(void);
