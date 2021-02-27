@@ -39,75 +39,41 @@ PeriphGPIO __led1(LED1_GPIO_Port, LED1_Pin, 100);
 PeriphGPIO __led2(LED2_GPIO_Port, LED2_Pin, 100);
 PeriphGPIO __led3(LED3_GPIO_Port, LED3_Pin, 100);
 
+tresc3::pidProperty<long> pidSetting = { 5000, 100, 0, 0, 0, 0, 0, 0, 0, 200, 0,
+		0, 0, 999, 1000 };
+long g_targetEncoder[4] = { -50, };
 
+tresc3::Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
+		(uint32_t *) &TIM8->CCR4, (uint32_t *) &TIM4->CNT, GPIOB, GPIO_PIN_0,
+		pidSetting }, { &htim8, &htim5, (uint32_t) TIM_CHANNEL_3,
+		(uint32_t *) &TIM8->CCR3, (uint32_t *) &TIM5->CNT, GPIOC, GPIO_PIN_5,
+		pidSetting }, { &htim8, &htim3, (uint32_t) TIM_CHANNEL_2,
+		(uint32_t *) &TIM8->CCR2, (uint32_t *) &TIM3->CNT, GPIOB, GPIO_PIN_1,
+		pidSetting }, { &htim8, &htim1, (uint32_t) TIM_CHANNEL_1,
+		(uint32_t *) &TIM8->CCR1, (uint32_t *) &TIM1->CNT, GPIOB, GPIO_PIN_2,
+		pidSetting } };
 
-tresc3::pidProperty<long> pidSetting = {5000, 100, 0,
-										0,
-										0, 0,
-										0, 0,
-										0, 200, 0,
-										0, 0, 999,
-										1000};
-tresc3::Pid<long> pid[4] = {pidSetting, pidSetting, pidSetting, pidSetting};
-tresc3::pidProperty<long> properties[4];
-uint16_t g_NowEncoder[4] = {0,};
-uint16_t g_PastEncoder[4] = {0,};
-GPIO_TypeDef* g_MotorGpio[4] = {GPIOB, GPIOC, GPIOB, GPIOB};
-uint16_t g_MotorGpioPin[4] = {GPIO_PIN_0, GPIO_PIN_5, GPIO_PIN_1, GPIO_PIN_2};
-uint32_t* g_MotorPwmAddr[4] = {(uint32_t *)&TIM8->CCR4, (uint32_t *)&TIM8->CCR3, (uint32_t *)&TIM8->CCR2, (uint32_t *)&TIM8->CCR1};
-uint32_t* g_MotorEncAddr[4] = {(uint32_t *)&TIM4->CNT, (uint32_t *)&TIM5->CNT, (uint32_t *)&TIM3->CNT, (uint32_t *)&TIM1->CNT};
-int g_DeltaEncoder[4] 	= {0,};
-long g_EncoderCnt[4] 	= {0,};
-long g_targetEncoder[4] = {-50,};
-long g_nowOutput[4] 	= {0,};
-
-tresc3::Motor<long> motor[4] = {{&htim8, &htim4, (uint32_t)TIM_CHANNEL_4, (uint32_t *)&TIM8->CCR4, (uint32_t *)&TIM4->CNT, GPIOB, GPIO_PIN_0,pidSetting},
-							    {&htim8, &htim5, (uint32_t)TIM_CHANNEL_3, (uint32_t *)&TIM8->CCR3, (uint32_t *)&TIM5->CNT, GPIOC, GPIO_PIN_5,pidSetting},
-							    {&htim8, &htim3, (uint32_t)TIM_CHANNEL_2, (uint32_t *)&TIM8->CCR2, (uint32_t *)&TIM3->CNT, GPIOB, GPIO_PIN_1,pidSetting},
-							    {&htim8, &htim1, (uint32_t)TIM_CHANNEL_1, (uint32_t *)&TIM8->CCR1, (uint32_t *)&TIM1->CNT, GPIOB, GPIO_PIN_2,pidSetting}};
-
-
-void ros_init(void)
-{
+void ros_init(void) {
 	nh.initNode();
 	nh.advertise(pub_str);
 	nh.advertise(pub_imu);
 	nh.subscribe(cmdVelSub);
 
-	for(int i = 0; i < 4; i ++)
-		properties[i] = pid[i].getProperty();
+	for (int i = 0; i < 4; i++)
+		motor[i].reset();
+	HAL_Delay(1000);
+	for (int i = 0; i < 4; i++)
+		motor[i].start();
 
-
-	  TIM8->CCR1 = 0;
-	  TIM8->CCR2 = 0;
-	  TIM8->CCR3 = 0;
-	  TIM8->CCR4 = 0;
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-	  HAL_TIMEx_PWMN_Start(&htim8, TIM_CHANNEL_1);
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
-	  HAL_TIMEx_PWMN_Start(&htim8, TIM_CHANNEL_2);
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
-	  HAL_TIMEx_PWMN_Start(&htim8, TIM_CHANNEL_3);
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_4);
-	  HAL_TIMEx_PWMN_Start(&htim8, TIM_CHANNEL_4);
-	  HAL_Delay(1000);
-
-
-	  HAL_TIM_Base_Start_IT(&htim6);
-	  HAL_TIM_Base_Start_IT(&htim7);
-	  HAL_TIM_Base_Start_IT(&htim14);
-
-	  HAL_TIM_Encoder_Start(&htim1,TIM_CHANNEL_ALL);
-	  HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
-	  HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
-	  HAL_TIM_Encoder_Start(&htim5,TIM_CHANNEL_ALL);
+	HAL_TIM_Base_Start_IT(&htim6);
+	HAL_TIM_Base_Start_IT(&htim7);
+	HAL_TIM_Base_Start_IT(&htim14);
 }
 
 uint32_t nowTick = 0;
 uint32_t pastTick = 0;
 
-void ros_run(void)
-{
+void ros_run(void) {
 	__ledState.run();
 	__led0.run();
 	__led1.run();
@@ -115,12 +81,10 @@ void ros_run(void)
 	__led3.run();
 
 	nowTick = HAL_GetTick();
-	if(nowTick - pastTick > 500)
-	{
-		for(int i = 0; i < 4; i ++)
-		{
-			g_targetEncoder[i] += 10;
-			if(g_targetEncoder[i] > 120)
+	if (nowTick - pastTick > 500) {
+		for (int i = 0; i < 4; i++) {
+			g_targetEncoder[i] -= 10;
+			if (g_targetEncoder[i] < -120)
 				g_targetEncoder[i] = 0;
 		}
 		str_msg.data = hello;
@@ -135,54 +99,27 @@ void ros_run(void)
 	nh.spinOnce();
 }
 
-void uart3TxCallback(UART_HandleTypeDef *huart)
-{
+void uart3TxCallback(UART_HandleTypeDef *huart) {
 	nh.getHardware()->flush();
 }
-void uart3RxCallbcak(UART_HandleTypeDef *huart)
-{
+
+void uart3RxCallbcak(UART_HandleTypeDef *huart) {
 	nh.getHardware()->reset_rbuf();
 }
 
-
-
-void timer10ms(void)
-{
-	for(int i = 0; i < 4; i++)
+void timer10ms(void) {
+	for (int i = 0; i < 4; i++)
 		motor[i].motorControl(g_targetEncoder[i]);
-//	for(int i = 0; i < 4; i++){
-////		pid[i].setGain(properties[i].kP, properties[i].kI, properties[i].kD);
-////		pid[i].setErrorSumLimit(properties[i].errorSumLimit);
-//		g_NowEncoder[i] = *g_MotorEncAddr[i];
-//		if (g_NowEncoder[i] > 30000)
-//			g_DeltaEncoder[i] =(long)g_NowEncoder[i] - 65535;
-//		else
-//			g_DeltaEncoder[i] = g_NowEncoder[i];
-//		*g_MotorEncAddr[i] = 0;
-//		g_nowOutput[i] = pid[i].run(g_targetEncoder[i], g_DeltaEncoder[i]);
-//		g_PastEncoder[i] = g_NowEncoder[i];
-//		if(g_nowOutput[i] < 0)
-//		{
-//			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_RESET);
-//			*g_MotorPwmAddr[i] = -g_nowOutput[i];
-//		}
-//		else
-//		{
-//			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_SET);
-//			*g_MotorPwmAddr[i] = g_nowOutput[i];
-//		}
-//	}
 }
-void timer15us(void)
-{
 
-}
-void timer1s(void)
-{
+void timer15us(void) {
 
 }
 
-void cmdVelCallback(const geometry_msgs::Twist& msg)
-{
+void timer1s(void) {
+
+}
+
+void cmdVelCallback(const geometry_msgs::Twist& msg) {
 	__led0.setPeriod(1000);
 }

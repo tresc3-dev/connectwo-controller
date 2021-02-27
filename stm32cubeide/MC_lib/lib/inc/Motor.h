@@ -31,7 +31,7 @@ private:
 
 	pwmModule* TIMxP;
 	pwmModule* TIMxE;
-	uint32_t* CCRx;
+	uint32_t* CCRx = NULL;
 	uint32_t* CNTx;
 	gpioModule* GPIOx;
 	uint16_t GPIO_Pinx;
@@ -52,7 +52,7 @@ public:
 			uint32_t* _CCRx, uint32_t* _CNTx,
 			gpioModule* _GPIOx, uint16_t _GPIO_Pinx,
 			pidProperty<T> _property)
-	: TIMxP(_TIMxE), TIMxE(_TIMxE), channel(_channel), CCRx(_CCRx), CNTx(_CNTx), GPIOx(_GPIOx), GPIO_Pinx(_GPIO_Pinx)
+	: TIMxP(_TIMxP), TIMxE(_TIMxE), channel(_channel), CCRx(_CCRx), CNTx(_CNTx), GPIOx(_GPIOx), GPIO_Pinx(_GPIO_Pinx)
 	{
 		encoderCnt = 0;
 		deltaEncoder = 0;
@@ -72,9 +72,17 @@ public:
 		free(GPIOx);
 	}
 
-	void init()
+	void reset()
 	{
 		*CCRx = 0;
+		*CNTx = 0;
+	}
+
+	void start()
+	{
+		HAL_TIM_PWM_Start(TIMxP, channel);
+		HAL_TIMEx_PWMN_Start(TIMxP, channel);
+		HAL_TIM_Encoder_Start(TIMxE, TIM_CHANNEL_ALL);
 	}
 
 	void setPwm(uint32_t _value)
