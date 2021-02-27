@@ -42,3 +42,29 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		uart3RxCallbcak(huart);
 	}
 }
+
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+	}
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		canRxCallback(hcan);
+
+	}
+}
+
+void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan)
+{
+	if (hcan->Instance == CAN1) {
+	}
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+	if (hcan->Instance == CAN1) {
+
+	}
+}
+
