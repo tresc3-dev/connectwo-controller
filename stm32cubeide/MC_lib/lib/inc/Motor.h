@@ -69,6 +69,7 @@ public:
 		free(TIMxP);
 		free(TIMxE);
 		free(CCRx);
+		free(CNTx);
 		free(GPIOx);
 	}
 
