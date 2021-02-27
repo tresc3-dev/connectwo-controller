@@ -7,6 +7,7 @@
 #ifndef INC_ROS_MAIN_H_
 #define INC_ROS_MAIN_H_
 #include <main.h>
+#include <tim.h>
 
 #ifdef __cplusplus
 extern "C" {
