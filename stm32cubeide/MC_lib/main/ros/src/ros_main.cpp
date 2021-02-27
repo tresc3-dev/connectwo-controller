@@ -16,6 +16,7 @@
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
 
+#include <Motor.h>
 #include <Nonholonomic.h>
 
 ros::NodeHandle nh;
@@ -60,7 +61,10 @@ long g_EncoderCnt[4] 	= {0,};
 long g_targetEncoder[4] = {-50,};
 long g_nowOutput[4] 	= {0,};
 
-
+tresc3::Motor<long> motor[4] = {{&htim8, &htim4, (uint32_t)TIM_CHANNEL_4, (uint32_t *)&TIM8->CCR4, (uint32_t *)&TIM4->CNT, GPIOB, GPIO_PIN_0,pidSetting},
+							    {&htim8, &htim5, (uint32_t)TIM_CHANNEL_3, (uint32_t *)&TIM8->CCR3, (uint32_t *)&TIM5->CNT, GPIOC, GPIO_PIN_5,pidSetting},
+							    {&htim8, &htim3, (uint32_t)TIM_CHANNEL_2, (uint32_t *)&TIM8->CCR2, (uint32_t *)&TIM3->CNT, GPIOB, GPIO_PIN_1,pidSetting},
+							    {&htim8, &htim1, (uint32_t)TIM_CHANNEL_1, (uint32_t *)&TIM8->CCR1, (uint32_t *)&TIM1->CNT, GPIOB, GPIO_PIN_2,pidSetting}};
 
 
 void ros_init(void)
@@ -111,8 +115,14 @@ void ros_run(void)
 	__led3.run();
 
 	nowTick = HAL_GetTick();
-	if(nowTick - pastTick > 1000)
+	if(nowTick - pastTick > 500)
 	{
+		for(int i = 0; i < 4; i ++)
+		{
+			g_targetEncoder[i] += 10;
+			if(g_targetEncoder[i] > 120)
+				g_targetEncoder[i] = 0;
+		}
 		str_msg.data = hello;
 		imu_msg.orientation.x = 10;
 		imu_msg.orientation.y = 105;
@@ -138,28 +148,30 @@ void uart3RxCallbcak(UART_HandleTypeDef *huart)
 
 void timer10ms(void)
 {
-	for(int i = 0; i < 4; i++){
-//		pid[i].setGain(properties[i].kP, properties[i].kI, properties[i].kD);
-//		pid[i].setErrorSumLimit(properties[i].errorSumLimit);
-		g_NowEncoder[i] = *g_MotorEncAddr[i];
-		if (g_NowEncoder[i] > 30000)
-			g_DeltaEncoder[i] =(long)g_NowEncoder[i] - 65535;
-		else
-			g_DeltaEncoder[i] = g_NowEncoder[i];
-		*g_MotorEncAddr[i] = 0;
-		g_nowOutput[i] = pid[i].runPid(g_targetEncoder[i], g_DeltaEncoder[i]);
-		g_PastEncoder[i] = g_NowEncoder[i];
-		if(g_nowOutput[i] < 0)
-		{
-			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_RESET);
-			*g_MotorPwmAddr[i] = -g_nowOutput[i];
-		}
-		else
-		{
-			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_SET);
-			*g_MotorPwmAddr[i] = g_nowOutput[i];
-		}
-	}
+	for(int i = 0; i < 4; i++)
+		motor[i].motorControl(g_targetEncoder[i]);
+//	for(int i = 0; i < 4; i++){
+////		pid[i].setGain(properties[i].kP, properties[i].kI, properties[i].kD);
+////		pid[i].setErrorSumLimit(properties[i].errorSumLimit);
+//		g_NowEncoder[i] = *g_MotorEncAddr[i];
+//		if (g_NowEncoder[i] > 30000)
+//			g_DeltaEncoder[i] =(long)g_NowEncoder[i] - 65535;
+//		else
+//			g_DeltaEncoder[i] = g_NowEncoder[i];
+//		*g_MotorEncAddr[i] = 0;
+//		g_nowOutput[i] = pid[i].run(g_targetEncoder[i], g_DeltaEncoder[i]);
+//		g_PastEncoder[i] = g_NowEncoder[i];
+//		if(g_nowOutput[i] < 0)
+//		{
+//			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_RESET);
+//			*g_MotorPwmAddr[i] = -g_nowOutput[i];
+//		}
+//		else
+//		{
+//			HAL_GPIO_WritePin(g_MotorGpio[i], g_MotorGpioPin[i], GPIO_PIN_SET);
+//			*g_MotorPwmAddr[i] = g_nowOutput[i];
+//		}
+//	}
 }
 void timer15us(void)
 {
