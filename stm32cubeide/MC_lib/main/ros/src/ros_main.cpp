@@ -54,7 +54,7 @@ tresc3::Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
 		(uint32_t *) &TIM8->CCR1, (uint32_t *) &TIM1->CNT, GPIOB, GPIO_PIN_2,
 		pidSetting } };
 
-tresc3::Nonholonomic dynamics(0.13, 0.1, 1664, 0.02);
+tresc3::Nonholonomic dynamics(0.13, 0.28, 1664, 0.02);
 
 extern CAN_HandleTypeDef hcan1;
 CAN_TxHeaderTypeDef can_tx_hedder = { 0, };
