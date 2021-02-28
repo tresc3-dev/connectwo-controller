@@ -104,6 +104,7 @@ public:
 		else
 			deltaEncoder = nowEncoder;
 		*CNTx = 0;
+		encoderCnt += deltaEncoder;
 	}
 
 	void motorControl(T _target)

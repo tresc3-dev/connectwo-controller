@@ -120,11 +120,6 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-
-
-
-
-
   ros_init();
   while (1)
   {
