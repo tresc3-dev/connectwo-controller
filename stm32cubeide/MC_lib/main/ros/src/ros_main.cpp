@@ -9,7 +9,8 @@
 #include <ros_main.h>
 #include <periphGpio.h>
 #include <periphCAN.h>
-#include <MW-AHRSv1.h>
+//#include <MW-AHRSv1.h>
+#include <Ahrsv1.h>
 
 #include "ros.h"
 #include "ros/time.h"
@@ -20,6 +21,8 @@
 
 #include <Motor.h>
 #include <Nonholonomic.h>
+
+extern CAN_HandleTypeDef hcan1;
 
 ros::NodeHandle nh;
 
@@ -34,17 +37,34 @@ char hello[] = "hello world!";
 void cmdVelCallback(const geometry_msgs::Twist& msg);
 ros::Subscriber<geometry_msgs::Twist> cmdVelSub("cmd_vel", &cmdVelCallback);
 
+//can_tx_hedder.StdId = 0x01;
+//can_tx_hedder.ExtId = 0x01;
+//can_tx_hedder.RTR = CAN_RTR_DATA;
+//can_tx_hedder.IDE = CAN_ID_STD;
+//can_tx_hedder.DLC = 8;
 PeriphGPIO __ledState(STATE_LED_GPIO_Port, STATE_LED_Pin, 1000);
 PeriphGPIO __led0(LED0_GPIO_Port, LED0_Pin, 100);
 PeriphGPIO __led1(LED1_GPIO_Port, LED1_Pin, 100);
 PeriphGPIO __led2(LED2_GPIO_Port, LED2_Pin, 100);
 PeriphGPIO __led3(LED3_GPIO_Port, LED3_Pin, 100);
-PeriphCAN __can();
+extern CAN_HandleTypeDef hcan1;
+Ahrsv1 __imu(&hcan1,
+		(CAN_Handler_t ) { (uint32_t) 0, (CAN_FilterTypeDef ) { 0x0000
+								<< 5, 0x0000, 0x0000 << 5, 0x0000,
+						CAN_FILTER_FIFO0, 0,
+						CAN_FILTERMODE_IDMASK,
+						CAN_FILTERSCALE_32BIT,
+						CAN_FILTER_ENABLE, 0 }, (CAN_TxHeaderTypeDef ) { 0x01,
 
-tresc3::pidProperty<long> pidSetting = { 5000, 100, 0, 0, 0, 0, 0, 0, 0, 200, 0,
+								0x01, CAN_ID_STD, CAN_RTR_DATA, 8,
+										(FunctionalState) 0 },
+						(CAN_RxHeaderTypeDef ) { 0, }, (uint8_t ) { 0, },
+						(uint8_t ) { 0, } });
+
+pidProperty<long> pidSetting = { 5000, 100, 0, 0, 0, 0, 0, 0, 0, 200, 0,
 		0, 0, 999, 1000 };
 
-tresc3::Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
+Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
 		(uint32_t *) &TIM8->CCR4, (uint32_t *) &TIM4->CNT, GPIOB, GPIO_PIN_0,
 		pidSetting }, { &htim8, &htim5, (uint32_t) TIM_CHANNEL_3,
 		(uint32_t *) &TIM8->CCR3, (uint32_t *) &TIM5->CNT, GPIOC, GPIO_PIN_5,
@@ -54,14 +74,7 @@ tresc3::Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
 		(uint32_t *) &TIM8->CCR1, (uint32_t *) &TIM1->CNT, GPIOB, GPIO_PIN_2,
 		pidSetting } };
 
-tresc3::Nonholonomic dynamics(0.13, 0.125, 1664, 0.02);
-
-extern CAN_HandleTypeDef hcan1;
-CAN_TxHeaderTypeDef can_tx_hedder = { 0, };
-CAN_RxHeaderTypeDef can_rx_hedder = { 0, };
-uint8_t can_tx_data[8] = { 0, };
-uint8_t can_rx_data[8] = { 0, };
-MW_AHRS ahrs_obj = { 0, };
+Nonholonomic dynamics(0.13, 0.125, 1664, 0.02);
 
 void ros_init(void) {
 	nh.initNode();
@@ -80,13 +93,16 @@ void ros_init(void) {
 	HAL_TIM_Base_Start_IT(&htim7);
 	HAL_TIM_Base_Start_IT(&htim14);
 
-	can_init();
+	__imu.init();
+	__imu.setDataType(1, 1, 1, 1);
+	__imu.setPeriod(10);
+
 }
 
 const int imu_index = 0;
 const int chat_index = 1;
-uint32_t nowTick[10] = {0,};
-uint32_t pastTick[10] = {0,};
+uint32_t nowTick[10] = { 0, };
+uint32_t pastTick[10] = { 0, };
 
 void ros_run(void) {
 	__ledState.run();
@@ -103,13 +119,12 @@ void ros_run(void) {
 	}
 	nowTick[imu_index] = HAL_GetTick();
 	if (nowTick[imu_index] - pastTick[imu_index] > 100) {
-		imu_msg.orientation.x = ahrs_obj.e_roll;
-		imu_msg.orientation.y = ahrs_obj.e_pitch;
-		imu_msg.orientation.z = ahrs_obj.e_yaw;
+		imu_msg.orientation.x = __imu.data.e_roll;
+		imu_msg.orientation.y = __imu.data.e_pitch;
+		imu_msg.orientation.z = __imu.data.e_yaw;
 		pub_imu.publish(&imu_msg);
 		pastTick[imu_index] = nowTick[imu_index];
 	}
-
 	nh.spinOnce();
 }
 
@@ -136,16 +151,61 @@ void timer1s(void) {
 
 void cmdVelCallback(const geometry_msgs::Twist& msg) {
 	__led0.setPeriod(1000);
+	auto ret = dynamics.calc(msg.linear.x, msg.angular.z);
+	long left_v = static_cast<long>(ret.leftValue);
+	long right_v = static_cast<long>(ret.rightValue);
+	motor[0].motorControl(left_v);
+	motor[1].motorControl(left_v);
+	motor[2].motorControl(right_v);
+	motor[3].motorControl(right_v);
 }
 
 void canRxCallback(CAN_HandleTypeDef *huart) {
-	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &can_rx_hedder, can_rx_data);
-	for (int i = 0; i < 8; i++) {
-		ahrs_obj.can_read_data[i] = can_rx_data[i];
-	}
-	mw_ahrs_input_data(&ahrs_obj);
+	uint8_t* rxData = __imu.getRxDataAddr();
+	CAN_RxHeaderTypeDef* rxHeader = __imu.getRxHedderAddr();
+	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, rxHeader, rxData);
+	for (int i = 0; i < 8; i++)
+		__imu.data.can_read_data[i] = rxData[i];
+	mw_ahrs_input_data(&__imu.data);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// now not used
+MW_AHRS ahrs_obj = { 0, };
+CAN_TxHeaderTypeDef can_tx_hedder = { 0, };
+CAN_RxHeaderTypeDef can_rx_hedder = { 0, };
+uint8_t can_tx_data[8] = { 0, };
+uint8_t can_rx_data[8] = { 0, };
 void can_init(void) {
 	CAN_FilterTypeDef canFilter;
 	canFilter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
