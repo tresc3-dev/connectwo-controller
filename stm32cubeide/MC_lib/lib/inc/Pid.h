@@ -10,7 +10,6 @@
 
 #include "main.h"
 
-namespace tresc3 {
 
 template<typename T>
 struct pidProperty {
@@ -108,6 +107,5 @@ public:
 		return m_pid;
 	}
 };
-} // namespace tresc3
 
 #endif /* PID_H_ */

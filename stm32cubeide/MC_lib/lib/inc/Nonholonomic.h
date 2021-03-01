@@ -5,9 +5,12 @@
  *      Author: colson
  */
 
-#ifndef NONHOLONOMIC_CPP_
-#define NONHOLONOMIC_CPP_
+#ifndef NONHOLONOMIC_H_
+#define NONHOLONOMIC_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /*      _____________
  *     |             |
  *  ___|             |___
@@ -21,7 +24,6 @@
  *
  * */
 
-namespace tresc3 {
 typedef struct motorValue_t {
 	double leftValue;
 	double rightValue;
@@ -50,7 +52,7 @@ public:
 	}
 	;
 
-	motorValueTypeDef dynamics(double _linearVelocity,
+	motorValueTypeDef calc(double _linearVelocity,
 			double _angularVelocity) {
 		motorValueTypeDef ret;
 		double l_value = 0;
@@ -66,6 +68,9 @@ public:
 private:
 
 };
-}
 
-#endif /* NONHOLONOMIC_CPP_ */
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* NONHOLONOMIC_H_ */

@@ -12,7 +12,6 @@
 #include "pid.h"
 #include "gpio.h"
 
-namespace tresc3 {
 
 using pwmModule = TIM_HandleTypeDef;
 using gpioModule = GPIO_TypeDef;
@@ -126,7 +125,6 @@ public:
 };
 
 
-}
 
 
 
