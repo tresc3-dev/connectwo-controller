@@ -38,7 +38,7 @@ private:
 	double factor;
 public:
 	/*
-	 * @param _r	: wheel radius
+	 * @param _r	: wheel radius (no diameter)
 	 * @param _l	: wheel distance / 2
 	 * @param _p	: pulses within 1 rev.
 	 * @param _t	: control cycle

@@ -9,7 +9,8 @@
 #include <ros_main.h>
 #include <periphGpio.h>
 #include <periphCAN.h>
-//#include <MW-AHRSv1.h>
+#include <periphusart.h>
+
 #include <Ahrsv1.h>
 
 #include "ros.h"
@@ -37,11 +38,12 @@ char hello[] = "hello world!";
 void cmdVelCallback(const geometry_msgs::Twist& msg);
 ros::Subscriber<geometry_msgs::Twist> cmdVelSub("cmd_vel", &cmdVelCallback);
 
-//can_tx_hedder.StdId = 0x01;
-//can_tx_hedder.ExtId = 0x01;
-//can_tx_hedder.RTR = CAN_RTR_DATA;
-//can_tx_hedder.IDE = CAN_ID_STD;
-//can_tx_hedder.DLC = 8;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
+
+PeriphUsart __usart2(&huart2);
+PeriphUsart __usart3(&huart3);
+
 PeriphGPIO __ledState(STATE_LED_GPIO_Port, STATE_LED_Pin, 1000);
 PeriphGPIO __led0(LED0_GPIO_Port, LED0_Pin, 100);
 PeriphGPIO __led1(LED1_GPIO_Port, LED1_Pin, 100);
@@ -74,7 +76,7 @@ Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
 		(uint32_t *) &TIM8->CCR1, (uint32_t *) &TIM1->CNT, GPIOB, GPIO_PIN_2,
 		pidSetting } };
 
-Nonholonomic dynamics(0.13, 0.125, 1664, 0.02);
+Nonholonomic dynamics(0.065, 0.125, 1664, 0.02);
 
 void ros_init(void) {
 	nh.initNode();
@@ -82,11 +84,9 @@ void ros_init(void) {
 	nh.advertise(pub_imu);
 	nh.subscribe(cmdVelSub);
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++){
 		motor[i].reset();
-	HAL_Delay(1000);
-	for (int i = 0; i < 4; i++)
-		motor[i].start();
+		motor[i].start();}
 	HAL_Delay(1000);
 
 	HAL_TIM_Base_Start_IT(&htim6);
@@ -103,6 +103,9 @@ const int imu_index = 0;
 const int chat_index = 1;
 uint32_t nowTick[10] = { 0, };
 uint32_t pastTick[10] = { 0, };
+
+long target_l = 0;
+long target_r = 0;
 
 void ros_run(void) {
 	__ledState.run();
@@ -129,16 +132,29 @@ void ros_run(void) {
 }
 
 void uart3TxCallback(UART_HandleTypeDef *huart) {
-	nh.getHardware()->flush();
+//	nh.getHardware()->flush();
+	__usart3.flush();
 }
 
 void uart3RxCallbcak(UART_HandleTypeDef *huart) {
-	nh.getHardware()->reset_rbuf();
+//	nh.getHardware()->reset_rbuf();
+	__usart3.reset_rbuf();
 }
 
+void uart2TxCallback(UART_HandleTypeDef *huart) {
+	nh.getHardware()->flush();
+}
+
+void uart2RxCallbcak(UART_HandleTypeDef *huart) {
+	nh.getHardware()->reset_rbuf();
+}
 void timer10ms(void) {
-	for (int i = 0; i < 4; i++)
-		motor[i].motorControl(50);
+	for (int i = 0; i < 4; i++){
+		motor[0].motorControl(target_l);
+		motor[1].motorControl(target_l);
+		motor[2].motorControl(target_r);
+		motor[3].motorControl(target_r);
+	}
 }
 
 void timer15us(void) {
@@ -150,14 +166,17 @@ void timer1s(void) {
 }
 
 void cmdVelCallback(const geometry_msgs::Twist& msg) {
-	__led0.setPeriod(1000);
 	auto ret = dynamics.calc(msg.linear.x, msg.angular.z);
-	long left_v = static_cast<long>(ret.leftValue);
-	long right_v = static_cast<long>(ret.rightValue);
-	motor[0].motorControl(left_v);
-	motor[1].motorControl(left_v);
-	motor[2].motorControl(right_v);
-	motor[3].motorControl(right_v);
+	target_l = static_cast<long>(ret.leftValue);
+	target_r = static_cast<long>(ret.rightValue);
+	printf("hello? \n\r");
+	printf("target_l: %d\n\r", static_cast<int>(target_l));
+	printf("target_r: %d\n\r", static_cast<int>(target_r));
+
+	__led0.setPeriod(target_l);
+	__led1.setPeriod(target_l);
+	__led2.setPeriod(target_r);
+	__led3.setPeriod(target_r);
 }
 
 void canRxCallback(CAN_HandleTypeDef *huart) {
@@ -169,7 +188,15 @@ void canRxCallback(CAN_HandleTypeDef *huart) {
 	mw_ahrs_input_data(&__imu.data);
 }
 
+int __printf__io__putchar(int ch)
+{
+	uint8_t data = ch;
 
+//	TODO change MAX485 or CAN line
+	__usart3.write(&data, 1);
+
+	return ch;
+}
 
 
 

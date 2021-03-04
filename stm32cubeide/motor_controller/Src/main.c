@@ -42,7 +42,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+int __io_putchar(int ch)
+{
+	//__usart2.write((uint8_t*)ch, 1);
+	__printf__io__putchar(ch);
+	return ch;
+}
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/

@@ -106,6 +106,11 @@ public:
 		encoderCnt += deltaEncoder;
 	}
 
+	T getTargetEncoder()
+	{
+		return targetEncoder;
+	}
+
 	void motorControl(T _target)
 	{
 		getDeltaEncoder();
