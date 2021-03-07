@@ -2,7 +2,6 @@ devel/
 logs/
 build/
 bin/
-lib/
 msg_gen/
 srv_gen/
 msg/*Action.msg
@@ -24,10 +23,6 @@ devel_isolated/
 # Ignore generated docs
 *.dox
 *.wikidoc
-
-# eclipse stuff
-.project
-.cproject
 
 # qcreator stuff
 CMakeLists.txt.user

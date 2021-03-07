@@ -39,7 +39,7 @@
 
 
 extern TIM_HandleTypeDef htim2;
-extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart2;
 
 class STM32Hardware {
   protected:
@@ -57,7 +57,7 @@ class STM32Hardware {
 
   public:
     STM32Hardware():
-      htim(&htim2), huart(&huart3), rind(0), twind(0), tfind(0){
+      htim(&htim2), huart(&huart2), rind(0), twind(0), tfind(0){
     }
 
     STM32Hardware(TIM_HandleTypeDef *htim_, UART_HandleTypeDef *huart_):
