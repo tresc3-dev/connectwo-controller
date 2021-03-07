@@ -36,6 +36,10 @@ private:
 	uint16_t GPIO_Pinx;
 	uint32_t channel;
 
+	T accTargetVel;
+	T accNowVel;
+	T accFactor = 3;
+
 public:
 	/*
 	 * @param _TIMxP 		: pwm generation timer module addr
@@ -60,6 +64,9 @@ public:
 
 		nowEncoder = 0;
 		pastEncoder = 0;
+
+		accTargetVel = 0;
+		accNowVel = 0;
 
 		pid.setProperty(_property);
 	}
@@ -113,8 +120,23 @@ public:
 
 	void motorControl(T _target)
 	{
+	    T value;
+	    if (abs(_target - accNowVel) < 5)
+	    {
+	        value = _target;
+	    }
+	    else if (_target > accNowVel)
+	    {
+	        accNowVel += accFactor;
+	        value = accNowVel;
+	    }
+	    else
+	    {
+	        accNowVel -= accFactor;
+	        value = accNowVel;
+	    }
 		getDeltaEncoder();
-		nowOutput = pid.run(_target, deltaEncoder);
+		nowOutput = pid.run(value, deltaEncoder);
 		pastEncoder = nowEncoder;
 		if (nowOutput < 0)
 		{

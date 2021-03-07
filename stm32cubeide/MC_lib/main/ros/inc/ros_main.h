@@ -14,11 +14,12 @@
 extern "C" {
 #endif
 
+void systemReset();
 
-void ros_init(void);
-void ros_run(void);
+void ros_init();
+void ros_run();
 
-void can_init(void);
+void can_init();
 
 
 void uart3TxCallback(UART_HandleTypeDef *huart);
@@ -26,9 +27,9 @@ void uart3RxCallbcak(UART_HandleTypeDef *huart);
 void uart2TxCallback(UART_HandleTypeDef *huart);
 void uart2RxCallbcak(UART_HandleTypeDef *huart);
 void canRxCallback(CAN_HandleTypeDef *huart);
-void timer10ms(void);
-void timer15us(void);
-void timer1s(void);
+void timer10ms();
+void timer15us();
+void timer1s();
 
 int __printf__io__putchar(int ch);
 #ifdef __cplusplus
