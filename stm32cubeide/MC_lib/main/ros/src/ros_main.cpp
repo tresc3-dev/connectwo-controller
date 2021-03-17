@@ -82,6 +82,15 @@ Nonholonomic dynamics(0.065, 0.125, 1664, 0.02);
 void systemReset() {
     HAL_NVIC_SystemReset();
 }
+
+const int imu_index = 0;
+const int chat_index = 1;
+uint32_t nowTick[10] = { 0, };
+uint32_t pastTick[10] = { 0, };
+
+long target_l = 0;
+long target_r = 0;
+
 void ros_init(void) {
     nh.initNode();
     nh.advertise(pub_str);
@@ -92,7 +101,7 @@ void ros_init(void) {
         motor[i].reset();
         motor[i].start();
     }
-    HAL_Delay(1000);
+    HAL_Delay(4000);
 
     HAL_TIM_Base_Start_IT(&htim6);
     HAL_TIM_Base_Start_IT(&htim7);
@@ -102,15 +111,16 @@ void ros_init(void) {
     __imu.setDataType(1, 1, 1, 1);
     __imu.setPeriod(10);
 
+
+    auto ret = dynamics.calc(0, 5.0);
+    target_l = static_cast<long>(ret.leftValue);
+    target_r = -static_cast<long>(ret.rightValue);
+    __led0.setPeriod(target_l);
+    __led1.setPeriod(target_l);
+    __led2.setPeriod(target_r);
+    __led3.setPeriod(target_r);
 }
 
-const int imu_index = 0;
-const int chat_index = 1;
-uint32_t nowTick[10] = { 0, };
-uint32_t pastTick[10] = { 0, };
-
-long target_l = 0;
-long target_r = 0;
 
 void ros_run(void) {
     __ledState.run();
@@ -173,7 +183,7 @@ void timer1s(void) {
 void cmdVelCallback(const geometry_msgs::Twist& msg) {
     auto ret = dynamics.calc(msg.linear.x, msg.angular.z);
     target_l = static_cast<long>(ret.leftValue);
-    target_r = static_cast<long>(ret.rightValue);
+    target_r = -static_cast<long>(ret.rightValue);
     printf("hello? \n\r");
     printf("target_l: %d\n\r", static_cast<int>(target_l));
     printf("target_r: %d\n\r", static_cast<int>(target_r));
