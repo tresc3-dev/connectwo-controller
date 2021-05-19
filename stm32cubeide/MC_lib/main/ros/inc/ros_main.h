@@ -6,6 +6,8 @@
  */
 #ifndef INC_ROS_MAIN_H_
 #define INC_ROS_MAIN_H_
+
+
 #include <main.h>
 #include <tim.h>
 #include <stdio.h>
@@ -26,6 +28,8 @@ void uart3TxCallback(UART_HandleTypeDef *huart);
 void uart3RxCallbcak(UART_HandleTypeDef *huart);
 void uart2TxCallback(UART_HandleTypeDef *huart);
 void uart2RxCallbcak(UART_HandleTypeDef *huart);
+void uart5TxCallback(UART_HandleTypeDef *huart);
+void uart5RxCallbcak(UART_HandleTypeDef *huart);
 void canRxCallback(CAN_HandleTypeDef *huart);
 void timer10ms();
 void timer15us();
