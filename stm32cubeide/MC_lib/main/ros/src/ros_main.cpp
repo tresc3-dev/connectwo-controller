@@ -145,6 +145,7 @@ void ros_init(void) {
         __imu.init();
         __imu.setDataType(1, 1, 1, 1);
         __imu.setPeriod(10);
+		printf("Arduino mode init complete.\r\n");
     }
     else
     {
@@ -169,16 +170,18 @@ void ros_init(void) {
         __imu.setPeriod(10);
 
         auto ret = dynamics.calc(0, 5.0);
-        target_l = static_cast<long>(ret.leftValue);
-        target_r = -static_cast<long>(ret.rightValue);
-        __led0.setPeriod(target_l);
-        __led1.setPeriod(target_l);
-        __led2.setPeriod(target_r);
-        __led3.setPeriod(target_r);
+//        target_l = static_cast<long>(ret.leftValue);
+//        target_r = -static_cast<long>(ret.rightValue);
+//        __led0.setPeriod(target_l);
+//        __led1.setPeriod(target_l);
+//        __led2.setPeriod(target_r);
+//        __led3.setPeriod(target_r);
+		printf("ROS mode init complete.\r\n");
     }
     machine.resetPacket();
     __usart3.init();
     __usart5.init();
+	printf("Init process complete.\r\n");
 }
 
 
@@ -243,10 +246,11 @@ void ros_run(void) {
     		}
     		if(machine.run(data))
     		{
-    			printf("machine complete\r\n");
+    			printf("Complete machine.\r\n");
     			tresc3::packet result = machine.getPacket();
     			if(result.cmd == 3)
     			{
+    				printf("Incoming task: set cmd_vel data.\r\n");
     				int linearX = result.data[0];
     				linearX |= result.data[1] << 8;
     				linearX |= result.data[2] << 16;
@@ -267,6 +271,7 @@ void ros_run(void) {
     		        __led1.setPeriod(target_l);
     		        __led2.setPeriod(target_r);
     		        __led3.setPeriod(target_r);
+    				printf("Complete led setup.\r\n");
     			}
     		}
     	}
@@ -274,13 +279,15 @@ void ros_run(void) {
 
 		nowTick[chat_index] = HAL_GetTick();
 		if(nowTick[chat_index] - pastTick[chat_index] > 100) {
-    		printf("Arduino mode chat \n\r");
+    		printf("Make imu packet(100ms).\n\r");
 			pastTick[chat_index] = nowTick[chat_index];
 
 
 			uint8_t makeData[255] = {0,};
 			int size = makeImuPacket(2, makeData, __imu.data.e_roll, __imu.data.e_pitch, __imu.data.e_yaw);
+    		printf("Complete make imu packet.\n\r");
 			__usart3.write(makeData, size);
+    		printf("Send packet __uart3(Arduino).\n\r");
 		}
     }
     else if(nowMode == ROS_MODE)
