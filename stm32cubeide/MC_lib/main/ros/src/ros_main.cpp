@@ -85,7 +85,7 @@ Ahrsv1 __imu(&hcan1, (CAN_Handler_t )
                                 { 0, }, (uint8_t )
                                         { 0, } });
 
-pidProperty<long> pidSetting = { 5000, 100, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0,
+pidProperty<long> pidSetting = { 10000, 100, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0,
         999, 1000 };
 
 Motor<long> motor[4] = { { &htim8, &htim4, (uint32_t) TIM_CHANNEL_4,
@@ -350,6 +350,9 @@ void timer15us(void) {
 
 void timer1s(void) {
 	printf("timer1s \n\r");
+	printf("imu_x %d \n\r", (int)(__imu.data.e_roll * 1000));
+	printf("imu_y %d \n\r", (int)(__imu.data.e_pitch * 1000));
+	printf("imu_z %d \n\r", (int)(__imu.data.e_yaw * 1000));
 }
 
 void cmdVelCallback(const geometry_msgs::Twist& msg) {
