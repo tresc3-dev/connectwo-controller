@@ -11,6 +11,7 @@
 
 #include <Pid.h>
 #include <ros_main.h>
+#include <connectwo_config.h>
 #include <periphGpio.h>
 #include <periphCAN.h>
 #include <periphusart.h>
@@ -26,6 +27,12 @@
 #include "sensor_msgs/Imu.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
+#include "tf/tf.h"
+#include "tf/transform_broadcaster.h"
+#include "sensor_msgs/JointState.h"
+#include "geometry_msgs/Vector3.h"
+#include "nav_msgs/Odometry.h"
+
 
 #include "StateMachine.h"
 
@@ -36,10 +43,7 @@ int nowMode = 0;
 
 extern CAN_HandleTypeDef hcan1;
 
-ros::NodeHandle nh;
-
 std_msgs::String str_msg;
-sensor_msgs::Imu imu_msg;
 
 ros::Publisher pub_str("/tresc3/chatter", &str_msg);
 ros::Publisher pub_imu("/imu", &imu_msg);
@@ -152,7 +156,8 @@ void ros_init(void) {
     	nowMode = ROS_MODE;
         nh.initNode();
         nh.advertise(pub_str);
-        nh.advertise(pub_imu);
+//        nh.advertise(pub_imu);
+        nh.advertise(imu_pub);
         nh.subscribe(cmdVelSub);
 
         for(int i = 0; i < 4; i++) {
@@ -169,13 +174,8 @@ void ros_init(void) {
         __imu.setDataType(1, 1, 1, 1);
         __imu.setPeriod(10);
 
-        auto ret = dynamics.calc(0, 5.0);
-//        target_l = static_cast<long>(ret.leftValue);
-//        target_r = -static_cast<long>(ret.rightValue);
-//        __led0.setPeriod(target_l);
-//        __led1.setPeriod(target_l);
-//        __led2.setPeriod(target_r);
-//        __led3.setPeriod(target_r);
+        initOdom();
+        initJointStates();
 		printf("ROS mode init complete.\r\n");
     }
     machine.resetPacket();
@@ -234,6 +234,9 @@ void ros_run(void) {
     __led1.run();
     __led2.run();
     __led3.run();
+
+    updateVariable(nh.connected());
+    updateTFPrefix(nh.connected());
 
     if(nowMode == ARDUINO_MODE)
     {
@@ -300,10 +303,11 @@ void ros_run(void) {
 		}
 		nowTick[imu_index] = HAL_GetTick();
 		if(nowTick[imu_index] - pastTick[imu_index] > 100) {
-			imu_msg.orientation.x = __imu.data.e_roll;
-			imu_msg.orientation.y = __imu.data.e_pitch;
-			imu_msg.orientation.z = __imu.data.e_yaw;
-			pub_imu.publish(&imu_msg);
+//			imu_msg.orientation.x = __imu.data.e_roll;
+//			imu_msg.orientation.y = __imu.data.e_pitch;
+//			imu_msg.orientation.z = __imu.data.e_yaw;
+//			pub_imu.publish(&imu_msg);
+			publishImuMsg();
 			pastTick[imu_index] = nowTick[imu_index];
 		}
 		nh.spinOnce();
@@ -426,3 +430,250 @@ void can_init(void) {
     uint32_t canTxMailbox;
     HAL_CAN_AddTxMessage(&hcan1, &can_tx_hedder, can_tx_data, &canTxMailbox);
 }
+
+void initOdom()
+{
+	init_encoder = true;
+
+	for (int index = 0; index < 3; index++)
+	{
+		odom_pose[index] = 0.0;
+		odom_vel[index] = 0.0;
+	}
+
+	odom.pose.pose.position.x = 0.0;
+	odom.pose.pose.position.y = 0.0;
+	odom.pose.pose.position.z = 0.0;
+
+	odom.pose.pose.orientation.x = 0.0;
+	odom.pose.pose.orientation.y = 0.0;
+	odom.pose.pose.orientation.z = 0.0;
+	odom.pose.pose.orientation.w = 0.0;
+
+	odom.twist.twist.linear.x = 0.0;
+	odom.twist.twist.angular.z = 0.0;
+}
+void initJointStates()
+{
+	  static char *joint_states_name[] = {(char*)"wheel_left_joint", (char*)"wheel_right_joint"};
+
+	  joint_states.header.frame_id = joint_state_header_frame_id;
+	  joint_states.name = joint_states_name;
+
+	  joint_states.name_length = WHEEL_NUM;
+	  joint_states.position_length = WHEEL_NUM;
+	  joint_states.velocity_length = WHEEL_NUM;
+	  joint_states.effort_length = WHEEL_NUM;
+}
+
+
+
+void commandVelocityCallback(const geometry_msgs::Twist& cmd_vel_msg)
+{
+
+}
+void resetCallback(const std_msgs::Empty& reset_msg)
+{
+
+}
+
+void publishImuMsg(void)
+{
+	imu_msg.header.stamp = rosNow();
+	imu_msg.header.frame_id = imu_frame_id;
+	imu_msg.orientation.x = __imu.data.e_roll;
+	imu_msg.orientation.y = __imu.data.e_pitch;
+	imu_msg.orientation.z = __imu.data.e_yaw;
+
+	imu_msg.angular_velocity.x = __imu.data.g_x;
+	imu_msg.angular_velocity.y = __imu.data.g_y;
+	imu_msg.angular_velocity.z = __imu.data.g_z;
+
+	imu_msg.linear_acceleration.x = __imu.data.a_x;
+	imu_msg.linear_acceleration.y = __imu.data.a_y;
+	imu_msg.linear_acceleration.z = __imu.data.a_z;
+
+	imu_pub.publish(&imu_msg);
+}
+void publishMagMsg(void)
+{
+
+}
+void publishSensorStateMsg(void)
+{
+
+}
+void publishDriveInformation(void)
+{
+	unsigned long time_now = HAL_GetTick();
+	unsigned long step_time = time_now - prev_update_time;
+
+	prev_update_time = time_now;
+    ros::Time stamp_now = rosNow();
+
+	// calculate odometry
+	calcOdometry((double)(step_time * 0.001));
+
+	// odometry
+	updateOdometry();
+	odom.header.stamp = stamp_now;
+	odom_pub.publish(&odom);
+
+	// odometry tf
+	updateTF(odom_tf);
+	odom_tf.header.stamp = stamp_now;
+	tf_broadcaster.sendTransform(odom_tf);
+
+	// joint state
+	updateJointStates();
+	joint_states.header.stamp =stamp_now;
+	joint_states_pub.publish(&joint_states);
+}
+
+ros::Time rosNow(void)
+{
+	  return nh.now();
+}
+ros::Time addMicros(ros::Time & t, uint32_t _micros) // deprecated
+{
+
+}
+
+void updateVariable(bool isConnected)
+{
+	static bool variable_flag = false;
+
+	if (isConnected)
+	{
+		if (variable_flag == false)
+		{
+			initOdom();
+			variable_flag = true;
+		}
+	}
+	else
+	{
+		variable_flag = false;
+	}
+}
+void updateMotorInfo(int32_t left_tick, int32_t right_tick)
+{
+
+}
+void updateTime(void)
+{
+	current_offset = HAL_GetTick();
+	current_time = nh.now();
+}
+void updateOdometry(void)
+{
+
+}
+void updateJoint(void)
+{
+
+}
+void updateTF(geometry_msgs::TransformStamped& odom_tf)
+{
+
+}
+void updateGoalVelocity(void)
+{
+
+}
+void updateTFPrefix(bool isConnected)
+{
+	static bool isChecked = false;
+	char log_msg[50];
+
+	if (isConnected)
+	{
+		if (isChecked == false)
+		{
+			nh.getParam("~tf_prefix", &get_tf_prefix);
+
+			if(!strcmp(get_tf_prefix, ""))
+			{
+				sprintf(odom_header_frame_id, "odom");
+				sprintf(odom_child_frame_id, "base_footprint");
+
+				sprintf(imu_frame_id, "imu_link");
+				sprintf(mag_frame_id, "mag_link");
+				sprintf(joint_state_header_frame_id, "base_link");
+			}
+			else
+			{
+		        strcpy(odom_header_frame_id, get_tf_prefix);
+		        strcpy(odom_child_frame_id, get_tf_prefix);
+
+		        strcpy(imu_frame_id, get_tf_prefix);
+		        strcpy(mag_frame_id, get_tf_prefix);
+		        strcpy(joint_state_header_frame_id, get_tf_prefix);
+
+		        strcat(odom_header_frame_id, "/odom");
+		        strcat(odom_child_frame_id, "/base_footprint");
+
+		        strcat(imu_frame_id, "/imu_link");
+		        strcat(mag_frame_id, "/mag_link");
+		        strcat(joint_state_header_frame_id, "/base_link");
+			}
+
+			sprintf(log_msg, "Setup TF on Odometry [%s]", odom_header_frame_id);
+			nh.loginfo(log_msg);
+
+			sprintf(log_msg, "Setup TF on IMU [%s]", imu_frame_id);
+			nh.loginfo(log_msg);
+
+			sprintf(log_msg, "Setup TF on MagneticField [%s]", mag_frame_id);
+			nh.loginfo(log_msg);
+
+			sprintf(log_msg, "Setup TF on JointState [%s]", joint_state_header_frame_id);
+			nh.loginfo(log_msg);
+
+			isChecked = true;
+		}
+	}
+	else
+	{
+		isChecked = false;
+	}
+}
+
+void updateJointStates(void)
+{
+
+}
+
+bool calcOdometry(double diff_time)
+{
+	float orientation[4];
+	double wheel_l, wheel_r;
+	double delta_s, theta, delta_theta;
+	static double last_theta = 0.0;
+	double v, w;
+	double step_time;
+
+	wheel_l = wheel_r = 0.0;
+	delta_s = delta_theta = theta = 0.0;
+	v= w = 0;
+	step_time = 0.0;
+
+	step_time = diff_time;
+
+	if (step_time == 0)
+		return false;
+
+	wheel_l = TICK2RAD * (double)last_diff_tick[LEFT];
+	wheel_r = TICK2RAD * (double)last_diff_tick[RIGHT];
+
+	if(isnan(wheel_l))
+		wheel_l = 0.0;
+	if(isnan(wheel_r))
+		wheel_r = 0.0;
+
+	delta_s = WHEEL_RADIUS * (wheel_r + wheel_l) / 2.0;
+
+
+}
+
+
