@@ -176,6 +176,7 @@ void ros_init(void) {
 
         initOdom();
         initJointStates();
+        tf_broadcaster.init(nh);
 		printf("ROS mode init complete.\r\n");
     }
     machine.resetPacket();
@@ -536,7 +537,12 @@ ros::Time rosNow(void)
 }
 ros::Time addMicros(ros::Time & t, uint32_t _micros) // deprecated
 {
+	  uint32_t sec, nsec;
 
+	  sec  = _micros / 1000 + t.sec;
+	  nsec = _micros % 1000000000 + t.nsec;
+
+	  return ros::Time(sec, nsec);
 }
 
 void updateVariable(bool isConnected)
@@ -558,7 +564,38 @@ void updateVariable(bool isConnected)
 }
 void updateMotorInfo(int32_t left_tick, int32_t right_tick)
 {
+	int32_t current_tick = 0;
+	static int32_t last_tick[WHEEL_NUM] = {0, 0};
 
+	if (init_encoder)
+	{
+		for (int index = 0; index < WHEEL_NUM; index++)
+		{
+		  last_diff_tick[index] = 0;
+		  last_tick[index]      = 0;
+		  last_rad[index]       = 0.0;
+
+		  last_velocity[index]  = 0.0;
+		}
+
+		last_tick[LEFT] = left_tick;
+		last_tick[RIGHT] = right_tick;
+
+		init_encoder = false;
+		return;
+	}
+
+	current_tick = left_tick;
+
+	last_diff_tick[LEFT] = current_tick - last_tick[LEFT];
+	last_tick[LEFT]      = current_tick;
+	last_rad[LEFT]       += TICK2RAD * (double)last_diff_tick[LEFT];
+
+	current_tick = right_tick;
+
+	last_diff_tick[RIGHT] = current_tick - last_tick[RIGHT];
+	last_tick[RIGHT]      = current_tick;
+	last_rad[RIGHT]       += TICK2RAD * (double)last_diff_tick[RIGHT];
 }
 void updateTime(void)
 {
@@ -567,7 +604,16 @@ void updateTime(void)
 }
 void updateOdometry(void)
 {
+	  odom.header.frame_id = odom_header_frame_id;
+	  odom.child_frame_id  = odom_child_frame_id;
 
+	  odom.pose.pose.position.x = odom_pose[0];
+	  odom.pose.pose.position.y = odom_pose[1];
+	  odom.pose.pose.position.z = 0;
+	  odom.pose.pose.orientation = tf::createQuaternionFromYaw(odom_pose[2]);
+
+	  odom.twist.twist.linear.x  = odom_vel[0];
+	  odom.twist.twist.angular.z = odom_vel[2];
 }
 void updateJoint(void)
 {
@@ -575,7 +621,12 @@ void updateJoint(void)
 }
 void updateTF(geometry_msgs::TransformStamped& odom_tf)
 {
-
+	odom_tf.header = odom.header;
+	odom_tf.child_frame_id = odom.child_frame_id;
+	odom_tf.transform.translation.x = odom.pose.pose.position.x;
+	odom_tf.transform.translation.y = odom.pose.pose.position.y;
+	odom_tf.transform.translation.z = odom.pose.pose.position.z;
+	odom_tf.transform.rotation      = odom.pose.pose.orientation;
 }
 void updateGoalVelocity(void)
 {
@@ -641,7 +692,18 @@ void updateTFPrefix(bool isConnected)
 
 void updateJointStates(void)
 {
+	  static float joint_states_pos[WHEEL_NUM] = {0.0, 0.0};
+	  static float joint_states_vel[WHEEL_NUM] = {0.0, 0.0};
+	  //static float joint_states_eff[WHEEL_NUM] = {0.0, 0.0};
 
+	  joint_states_pos[LEFT]  = last_rad[LEFT];
+	  joint_states_pos[RIGHT] = last_rad[RIGHT];
+
+	  joint_states_vel[LEFT]  = last_velocity[LEFT];
+	  joint_states_vel[RIGHT] = last_velocity[RIGHT];
+
+	  joint_states.position = joint_states_pos;
+	  joint_states.velocity = joint_states_vel;
 }
 
 bool calcOdometry(double diff_time)
