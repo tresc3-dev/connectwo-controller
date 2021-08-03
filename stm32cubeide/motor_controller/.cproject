@@ -43,23 +43,19 @@
 									<listOptionValue builtIn="false" value="DEBUG"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths.1377811026" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Include"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/periph"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/ros/inc"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../Src"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/ros/src"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../Inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/arduino/inc"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/src"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/ROS/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1990773813" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
@@ -74,23 +70,19 @@
 									<listOptionValue builtIn="false" value="DEBUG"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.includepaths.781063720" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Include"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/ros/inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/periph"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/"/>
 									<listOptionValue builtIn="false" value="../Src"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/ros/src"/>
-									<listOptionValue builtIn="false" value="../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../Inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/main/arduino/inc"/>
-									<listOptionValue builtIn="false" value="../Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/inc"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/lib/src"/>
-									<listOptionValue builtIn="false" value="C:/Users/dud37/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
+									<listOptionValue builtIn="false" value="C:/Users/user/STM32Cube/Repository/STM32Cube_FW_F4_V1.24.1/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
 									<listOptionValue builtIn="false" value="../../MC_lib/ROS/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp.1516658673" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.cpp.compiler.input.cpp"/>

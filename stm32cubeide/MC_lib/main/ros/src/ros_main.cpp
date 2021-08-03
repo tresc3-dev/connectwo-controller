@@ -482,9 +482,7 @@ void publishImuMsg(void)
 {
 	imu_msg.header.stamp = rosNow();
 	imu_msg.header.frame_id = imu_frame_id;
-	imu_msg.orientation.x = __imu.data.e_roll;
-	imu_msg.orientation.y = __imu.data.e_pitch;
-	imu_msg.orientation.z = __imu.data.e_yaw;
+	imu_msg.orientation = tf::createQuaternionFromYaw(__imu.data.e_yaw);
 
 	imu_msg.angular_velocity.x = __imu.data.g_x;
 	imu_msg.angular_velocity.y = __imu.data.g_y;
@@ -734,8 +732,29 @@ bool calcOdometry(double diff_time)
 		wheel_r = 0.0;
 
 	delta_s = WHEEL_RADIUS * (wheel_r + wheel_l) / 2.0;
+	theta = __imu.data.e_yaw;
 
+	delta_theta = theta - last_theta;
 
+	// compute odometric pose
+	odom_pose[0] += delta_s * cos(odom_pose[2] + (delta_theta / 2.0));
+	odom_pose[1] += delta_s * sin(odom_pose[2] + (delta_theta / 2.0));
+	odom_pose[2] += delta_theta;
+
+	// compute odometric instantaneouse velocity
+
+	v = delta_s / step_time;
+	w = delta_theta / step_time;
+
+	odom_vel[0] = v;
+	odom_vel[1] = 0.0;
+	odom_vel[2] = w;
+
+	last_velocity[LEFT]  = wheel_l / step_time;
+	last_velocity[RIGHT] = wheel_r / step_time;
+	last_theta = theta;
+
+	return true;
 }
 
 
