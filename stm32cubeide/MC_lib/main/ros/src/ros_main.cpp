@@ -753,7 +753,7 @@ bool calcOdometry(double diff_time)
 		wheel_r = 0.0;
 
 	delta_s = WHEEL_RADIUS * (wheel_r + wheel_l) / 2.0;
-	theta = __imu.data.e_yaw;
+	theta = DEG2RAD(__imu.data.e_yaw);
 
 	delta_theta = theta - last_theta;
 
