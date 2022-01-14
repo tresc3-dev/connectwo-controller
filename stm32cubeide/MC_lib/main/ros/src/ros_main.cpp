@@ -362,8 +362,10 @@ void timer1s(void) {
 
 void cmdVelCallback(const geometry_msgs::Twist& msg) {
     auto ret = dynamics.calc(msg.linear.x, msg.angular.z);
-    target_l = static_cast<long>(ret.leftValue);
-    target_r = -static_cast<long>(ret.rightValue);
+//    target_l = static_cast<long>(ret.leftValue);
+//    target_r = -static_cast<long>(ret.rightValue);
+    target_r = static_cast<long>(ret.leftValue);
+    target_l = -static_cast<long>(ret.rightValue);
     printf("hello? \n\r");
     printf("target_l: %d\n\r", static_cast<int>(target_l));
     printf("target_r: %d\n\r", static_cast<int>(target_r));
