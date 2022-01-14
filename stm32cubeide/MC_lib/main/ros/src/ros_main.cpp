@@ -303,7 +303,7 @@ void ros_run(void) {
 			pastTick[chat_index] = nowTick[chat_index];
 		}
 		nowTick[imu_index] = HAL_GetTick();
-		if(nowTick[imu_index] - pastTick[imu_index] > 100) {
+		if(nowTick[imu_index] - pastTick[imu_index] > 250) { // value less than 250 will occur error
 //			imu_msg.orientation.x = __imu.data.e_roll;
 //			imu_msg.orientation.y = __imu.data.e_pitch;
 //			imu_msg.orientation.z = __imu.data.e_yaw;
@@ -482,7 +482,28 @@ void publishImuMsg(void)
 {
 	imu_msg.header.stamp = rosNow();
 	imu_msg.header.frame_id = imu_frame_id;
-	imu_msg.orientation = tf::createQuaternionFromYaw(__imu.data.e_yaw);
+//	imu_msg.orientation = tf::createQuaternionFromYaw(__imu.data.e_yaw);
+	
+	// create quaternion from roll, pitch, yaw to visualize imu data in rviz
+	float roll__ = DEG2RAD(__imu.data.e_roll);
+	float pitch__ = DEG2RAD(__imu.data.e_pitch);
+	float yaw__ = DEG2RAD(__imu.data.e_yaw);
+
+
+	float halfYaw = yaw__ * 0.5;
+	float halfPitch = pitch__ * 0.5;
+	float halfRoll = roll__ * 0.5;
+	float cosYaw = cos(halfYaw);
+	float sinYaw = sin(halfYaw);
+	float cosPitch = cos(halfPitch);
+	float sinPitch = sin(halfPitch);
+	float cosRoll = cos(halfRoll);
+	float sinRoll = sin(halfRoll);
+
+	imu_msg.orientation.x = sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw;
+	imu_msg.orientation.y = cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw;
+	imu_msg.orientation.z = cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw;
+	imu_msg.orientation.w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
 
 	imu_msg.angular_velocity.x = __imu.data.g_x;
 	imu_msg.angular_velocity.y = __imu.data.g_y;
