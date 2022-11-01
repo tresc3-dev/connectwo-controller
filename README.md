@@ -12,7 +12,13 @@
 
 > I cannot give you the fomular for success, but I can give you the formula for failure-Which is: Try to please everybody. -H. B. Swope -
 
-<img src="./image/board_0.jpg" alt="board" style="width:600px;"/>
+
+<img src="./image/robot_0.jpeg" alt="robot" style="width:500px;"/>
+
+<img src="./image/robot_1.jpeg" alt="boards" style="width:500px;"/>
+
+<img src="./image/board_0.jpg" alt="board" style="width:500px;"/>
+
 
 * Toolchain: stm32cubeide
 * Chip: stm32f446re
@@ -26,3 +32,4 @@
 * 5V input
 * 4 * ADC
 * 4 * motor (PWM, DIR, ENCODER enabled)
+
