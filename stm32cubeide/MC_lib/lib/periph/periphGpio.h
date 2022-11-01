@@ -22,7 +22,8 @@ protected:
 public:
 
 	PeriphGPIO(){	}
-	PeriphGPIO(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_):
+
+	PeriphGPIO(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_ = 1000):
 		GPIOx(GPIOx_), GPIO_Pin(GPIO_Pin_), PinState(GPIO_PIN_RESET), period(period_){
 	}
 

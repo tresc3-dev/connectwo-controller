@@ -345,6 +345,16 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>MC_lib/main/StateMachine.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MC_lib/main/StateMachine.cpp</locationURI>
+		</link>
+		<link>
+			<name>MC_lib/main/StateMachine.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MC_lib/main/StateMachine.h</locationURI>
+		</link>
+		<link>
 			<name>MC_lib/main/arduino</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -2668,6 +2678,11 @@
 			<name>MC_lib/main/arduino/src/arduino_main.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/MC_lib/main/arduino/src/arduino_main.cpp</locationURI>
+		</link>
+		<link>
+			<name>MC_lib/main/ros/inc/connectwo_config.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MC_lib/main/ros/inc/connectwo_config.h</locationURI>
 		</link>
 		<link>
 			<name>MC_lib/main/ros/inc/ros_main.h</name>
