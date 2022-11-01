@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/dud37/Desktop/workspace/connectwo-controller/stm32cubeide/motor_controller/Inc
+HeaderPath=D:/stm_ws/connectwo-controller/stm32cubeide/motor_controller/Inc
 HeaderFiles=stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;gpio.h;adc.h;can.h;i2c.h;tim.h;usart.h;usb_otg.h;dma.h;
-SourcePath=C:/Users/dud37/Desktop/workspace/connectwo-controller/stm32cubeide/motor_controller/Src
+SourcePath=D:/stm_ws/connectwo-controller/stm32cubeide/motor_controller/Src
 SourceFiles=stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;gpio.c;adc.c;can.c;i2c.c;tim.c;usart.c;usb_otg.c;dma.c;
 
 [PreviousLibFiles]

@@ -37,6 +37,10 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		uart2TxCallback(huart);
 	}
+	else if(huart->Instance == UART5)
+	{
+		uart5TxCallback(huart);
+	}
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -48,6 +52,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	else if(huart->Instance == USART2)
 	{
 		uart2RxCallbcak(huart);
+	}
+	else if(huart->Instance == UART5)
+	{
+		uart5RxCallbcak(huart);
 	}
 }
 
